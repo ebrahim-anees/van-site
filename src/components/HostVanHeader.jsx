@@ -1,17 +1,9 @@
-import { Link, NavLink, Outlet, useParams } from 'react-router';
-import { useState, useEffect } from 'react';
-export default function HostVanHeader() {
-  let { id } = useParams();
-  const [van, setVan] = useState([]);
-  useEffect(() => {
-    async function fetchingData() {
-      const response = await fetch(`/api/host/vans/${id}`);
-      const data = await response.json();
-      setVan(data.vans[0]);
-    }
-    fetchingData();
-  }, []);
-
+import { Link, NavLink, Outlet } from 'react-router';
+import { getVan } from './../utilities/api.js';
+export function loader(id) {
+  return { loadedVan: getVan(id) };
+}
+export default function HostVanHeader({ van }) {
   function VanInfo() {
     return (
       <>

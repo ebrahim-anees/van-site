@@ -1,44 +1,147 @@
 import {
-  BrowserRouter as ParentRouter,
-  Routes as ChildRouter,
+  // BrowserRouter as ParentRouter,
+  // Routes as ChildRouter,
   Route as URL,
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
 } from 'react-router';
-import Navbar from './layouts/Layout.jsx';
-import HostNavbar from './layouts/HostNavbar.jsx';
-import HostVanNavbar from './layouts/HostVanNavbar.jsx';
-import Home from './pages/Home.jsx';
-import About from './pages/About.jsx';
-import Vans from './pages/vans/Vans.jsx';
-import VanDetails from './pages/vans/VanDetails.jsx';
-import Dashboard from './pages/host/Dashboard.jsx';
-import Income from './pages/host/Income.jsx';
-import Reviews from './pages/host/Reviews.jsx';
-import HostVan from './pages/host/vans/HostVan.jsx';
-import Details from './pages/host/vans/vansDetails/Details.jsx';
-import Photos from './pages/host/vans/vansDetails/Photos.jsx';
-import Pricing from './pages/host/vans/vansDetails/Pricing.jsx';
-export default function App() {
-  return (
-    <ParentRouter>
-      <ChildRouter>
-        <URL path="/" element={<Navbar />}>
-          <URL index element={<Home />} />
-          <URL path="host" element={<HostNavbar />}>
-            <URL index element={<Dashboard />} />
-            <URL path="vans" element={<HostVan />} />
-            <URL path="vans/:id" element={<HostVanNavbar />}>
-              <URL index element={<Details />} />
-              <URL path="pricing" element={<Pricing />} />
-              <URL path="photos" element={<Photos />} />
-            </URL>
-            <URL path="income" element={<Income />} />
-            <URL path="reviews" element={<Reviews />} />
-          </URL>
-          <URL path="about" element={<About />} />
-          <URL path="vans" element={<Vans />} />
-          <URL path="vans/:id" element={<VanDetails />} />
+import {
+  Navbar,
+  HostNavbar,
+  hostNavbarLoader,
+  HostVanNavbar,
+  HostVanHeaderLoader,
+  Home,
+  About,
+  Vans,
+  vansLoader,
+  VanDetails,
+  vanDetailsLoader,
+  Dashboard,
+  dashboardLoader,
+  Income,
+  Reviews,
+  HostVan,
+  hostVanLoader,
+  Details,
+  Photos,
+  Pricing,
+  NotFound,
+  ErrorHandler,
+  Login,
+  loginLoader,
+  loginAction,
+  checkAuth,
+} from './imports';
+// export default function App() {
+//   return (
+//     <ParentRouter>
+//       <ChildRouter>
+//         <URL path="/" element={<Navbar />}>
+//           <URL index element={<Home />} />
+//           <URL path="host" element={<HostNavbar />}>
+//             <URL index element={<Dashboard />} />
+//             <URL path="vans" element={<HostVan />} />
+//             <URL path="vans/:id" element={<HostVanNavbar />}>
+//               <URL index element={<Details />} />
+//               <URL path="pricing" element={<Pricing />} />
+//               <URL path="photos" element={<Photos />} />
+//             </URL>
+//             <URL path="income" element={<Income />} />
+//             <URL path="reviews" element={<Reviews />} />
+//           </URL>
+//           <URL path="about" element={<About />} />
+//           <URL path="vans" element={<Vans />} />
+//           <URL path="vans/:id" element={<VanDetails />} />
+//           <URL path="*" element={<NotFound />} />
+//         </URL>
+//       </ChildRouter>
+//     </ParentRouter>
+//   );
+// }
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <URL path="/" element={<Navbar />}>
+      <URL index element={<Home />} />
+      <URL path="host" element={<HostNavbar />} loader={hostNavbarLoader}>
+        <URL
+          index
+          element={<Dashboard />}
+          loader={async ({ request }) => {
+            await checkAuth(request.url);
+            return dashboardLoader();
+          }}
+        />
+        <URL
+          path="vans"
+          element={<HostVan />}
+          errorElement={<ErrorHandler />}
+          loader={async ({ request }) => {
+            await checkAuth(request.url);
+            return hostVanLoader();
+          }}
+        />
+        <URL
+          path="vans/:id"
+          element={<HostVanNavbar />}
+          errorElement={<ErrorHandler />}
+          loader={async ({ params, request }) => {
+            await checkAuth(request.url);
+            const { id } = params;
+            return HostVanHeaderLoader(id);
+          }}
+        >
+          <URL
+            index
+            element={<Details />}
+            loader={async ({ request }) => checkAuth(request.url)}
+          />
+          <URL
+            path="pricing"
+            element={<Pricing />}
+            loader={async ({ request }) => checkAuth(request.url)}
+          />
+          <URL
+            path="photos"
+            element={<Photos />}
+            loader={async ({ request }) => checkAuth(request.url)}
+          />
         </URL>
-      </ChildRouter>
-    </ParentRouter>
-  );
+        <URL
+          path="income"
+          element={<Income />}
+          loader={async ({ request }) => checkAuth(request.url)}
+        />
+        <URL
+          path="reviews"
+          element={<Reviews />}
+          loader={async ({ request }) => checkAuth(request.url)}
+        />
+      </URL>
+      <URL path="about" element={<About />} />
+      <URL
+        path="login"
+        element={<Login />}
+        loader={loginLoader}
+        action={loginAction}
+      />
+      <URL
+        path="vans"
+        element={<Vans />}
+        errorElement={<ErrorHandler />}
+        loader={vansLoader}
+      />
+      <URL
+        path="vans/:id"
+        element={<VanDetails />}
+        errorElement={<ErrorHandler />}
+        loader={vanDetailsLoader}
+      />
+      <URL path="*" element={<NotFound />} />
+    </URL>
+  )
+);
+export default function App() {
+  return <RouterProvider router={router} />;
 }

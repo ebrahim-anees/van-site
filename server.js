@@ -1,8 +1,9 @@
-import { createServer, Model } from 'miragejs';
+import { createServer, Model, Response } from 'miragejs';
 
 createServer({
   models: {
     vans: Model,
+    users: Model,
   },
 
   seeds(server) {
@@ -72,11 +73,18 @@ createServer({
       type: 'rugged',
       hostId: '123',
     });
+    server.create('user', {
+      id: '123',
+      email: 'hema@gmail.com',
+      password: '123',
+      name: 'Bob',
+    });
   },
 
   routes() {
     this.namespace = 'api';
     this.logging = false;
+    this.passthrough('https://firestore.googleapis.com/**');
 
     this.get('/vans', (schema, request) => {
       return schema.vans.all();
@@ -95,7 +103,16 @@ createServer({
     this.get('/host/vans/:id', (schema, request) => {
       // Hard-code the hostId for now
       const id = request.params.id;
-      return schema.vans.where({ id, hostId: '123' });
+      return schema.vans.findBy({ id, hostId: '123' });
+    });
+    this.post('/login', (schema, request) => {
+      const { email, password } = JSON.parse(request.requestBody);
+      const user = schema.users.findBy({ email, password });
+      if (!user) {
+        throw new Response(401, {}, { message: 'Invalid credentials' });
+      }
+      user.password = undefined;
+      return { user: user, token: "Enjoy your pizza, here's your tokens." };
     });
   },
 });
